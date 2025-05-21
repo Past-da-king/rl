@@ -1,66 +1,70 @@
 import argparse
-import sys 
+import sys
 from FourRooms import FourRooms
 from Q_agent import QAgent 
 
-def calculate_reward_s2(cell_type: int, new_pos: tuple, packages_remaining: int, is_terminal: bool, old_k: int) -> float:
-    
-    reward = -1 # Cost per step
+def calculate_reward_s3(cell_type: int, new_pos: tuple, packages_remaining: int, is_terminal: bool, old_k: int) -> float:
+    reward = -1
 
-    # Reward for collecting any package
+    expected_package_type = None
+    if old_k == 3:
+        expected_package_type = FourRooms.RED
+    elif old_k == 2:
+        expected_package_type = FourRooms.GREEN
+    elif old_k == 1:
+        expected_package_type = FourRooms.BLUE
+
     if packages_remaining < old_k:
-        reward += 50 
+        if cell_type == expected_package_type:
+            reward += 200
+        else:
+            reward -= 1000
 
-    # Additional large reward for collecting ALL packages and episode termination
     if packages_remaining == 0 and is_terminal:
-        reward += 100 
-        
+        reward += 1000
+    elif is_terminal and packages_remaining > 0:
+        pass # Penalty already applied by the -1000 above
+
     return reward
 
 def main():
-
-    parser = argparse.ArgumentParser(description="Run Four-Rooms RL Scenario 2.")
+    parser = argparse.ArgumentParser(description="Run Four-Rooms RL Scenario 3.")
     parser.add_argument(
         '--stochastic',
-        action='store_true', # If '--stochastic' is present, args.stochastic will be True
+        action='store_true',
         help="Enable stochastic actions where the agent's intended movement has a 20% chance of random deviation."
     )
-    args = parser.parse_args() # Parse command-line arguments
+    args = parser.parse_args()
 
-    # Create FourRooms Object for 'multi' scenario
-    fourRoomsObj = FourRooms('multi', stochastic=args.stochastic)
+    fourRoomsObj = FourRooms('rgb', stochastic=args.stochastic)
 
-    # Hyperparameters
-    num_epochs = 5000 
-    max_steps_per_epoch = 1000 
+    num_epochs = 20000
+    max_steps_per_epoch = 1500
 
-    learning_rate = 0.1     
-    discount_factor = 0.9   
+    learning_rate = 0.1
+    discount_factor = 0.9
 
-    epsilon_start = 1.0     
-    epsilon_end = 0.01      
-    
+    epsilon_start = 1.0
+    epsilon_end = 0.01
     epsilon_decay_rate = (epsilon_start - epsilon_end) / num_epochs
 
-    # Initialize QAgent for Scenario 2 (max_k=4 for 4 packages)
-    agent = QAgent(num_x=11, num_y=11, max_k=4, num_actions=4,
+    agent = QAgent(num_x=11, num_y=11, max_k=3, num_actions=4,
                    alpha=learning_rate, gamma=discount_factor,
                    epsilon_start=epsilon_start, epsilon_end=epsilon_end,
                    epsilon_decay_rate=epsilon_decay_rate)
 
-    # Training Loop
-    print(f"Starting Q-learning training for Scenario 2 (Stochastic: {args.stochastic})...")
+    print(f"Starting Q-learning training for Scenario 3 (Stochastic: {args.stochastic})...")
     for epoch in range(num_epochs):
         fourRoomsObj.newEpoch()
         current_x, current_y = fourRoomsObj.getPosition()
-        current_k = fourRoomsObj.getPackagesRemaining() 
+        current_k = fourRoomsObj.getPackagesRemaining()
         current_state = (current_x, current_y, current_k)
 
         for step in range(max_steps_per_epoch):
             action = agent.choose_action(current_state)
             cellType, newPos, packagesRemaining, isTerminal = fourRoomsObj.takeAction(action)
 
-            reward = calculate_reward_s2(cellType, newPos, packagesRemaining, isTerminal, current_k)
+            reward = calculate_reward_s3(cellType, newPos, packagesRemaining, isTerminal, current_k)
 
             next_state = (newPos[0], newPos[1], packagesRemaining)
             agent.update_q_table(current_state, action, reward, next_state)
@@ -69,18 +73,21 @@ def main():
             current_k = packagesRemaining 
 
             if isTerminal:
-                print(f"Agent successfully collected all packages in {step+1} steps during training epoch {epoch+1}.")
+                if packagesRemaining == 0:
+                    print(f"Agent collected all packages in order in {step+1} steps during training epoch {epoch+1}.")
+                else:
+                    print(f"Agent terminated early (wrong package) in {step+1} steps during training epoch {epoch+1}.")
                 break
         
         agent.decay_epsilon(epoch)
         if (epoch + 1) % (num_epochs // 10) == 0:
             print(f"Epoch {epoch+1}/{num_epochs} complete. Current epsilon: {agent.epsilon:.4f}")
 
-    print("Training complete for Scenario 2.")
+    print("Training complete for Scenario 3.")
 
-    print("\nDemonstrating learned policy for Scenario 2...")
+    print("\nDemonstrating learned policy for Scenario 3...")
     
-    fourRoomsObj.newEpoch() # Reset environment for a fresh run to visualize the learned path.
+    fourRoomsObj.newEpoch()
     current_x, current_y = fourRoomsObj.getPosition()
     current_k = fourRoomsObj.getPackagesRemaining()
     current_state = (current_x, current_y, current_k)
@@ -91,10 +98,15 @@ def main():
         cellType, newPos, packagesRemaining, isTerminal = fourRoomsObj.takeAction(action)
         current_state = (newPos[0], newPos[1], packagesRemaining)
         if isTerminal:
-            print(f"Agent successfully collected all packages in {step+1} steps.")
+            if packagesRemaining == 0:
+                print(f"Agent successfully collected all packages in order in {step+1} steps.")
+            else:
+                print(f"Agent failed to collect all packages in order (terminated early) in {step+1} steps.")
             break
-    fourRoomsObj.showPath(-1) 
-    fourRoomsObj.showPath(-1, savefig='scenario2_final_path.png') # Saves after window closed
+    
+
+    fourRoomsObj.showPath(-1) # Displays on screen
+    # fourRoomsObj.showPath(-1, savefig='scenario3_final_path.png') # Saves to file
 
 if __name__ == "__main__":
     main()
