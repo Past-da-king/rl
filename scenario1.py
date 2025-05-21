@@ -1,7 +1,7 @@
 import argparse
 import sys 
 from FourRooms import FourRooms
-from q_agent import QAgent 
+from Q_agent import QAgent 
 
 def calculate_reward_s1(cell_type: int, new_pos: tuple, packages_remaining: int, is_terminal: bool, old_k: int) -> float:
 
@@ -117,7 +117,8 @@ def main():
             break # Episode finished, exit policy run.
     
 
-    fourRoomsObj.showPath(-1)
+    # fourRoomsObj.showPath(-1)
+    fourRoomsObj.showPath(-1, savefig='scenario1_final_path.png')
     
 
 if __name__ == "__main__":
