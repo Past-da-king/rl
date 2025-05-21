@@ -2,29 +2,31 @@ import argparse
 import sys
 from FourRooms import FourRooms
 from Q_agent import QAgent
+
+
+
 def calculate_reward_s3(cell_type: int, new_pos: tuple, packages_remaining: int, is_terminal: bool, old_k: int) -> float:
-    reward = -1
+    reward = -1 # Cost per step
 
     expected_package_type_for_order = None
-    if old_k == 4: # When 4 packages remain, expect RED (first ordered)
+    if old_k == 4:
         expected_package_type_for_order = FourRooms.RED
-    elif old_k == 3: # When 3 packages remain, expect GREEN (second ordered)
+    elif old_k == 3:
         expected_package_type_for_order = FourRooms.GREEN
-    elif old_k == 2: # When 2 packages remain, expect BLUE (third ordered)
+    elif old_k == 2:
         expected_package_type_for_order = FourRooms.BLUE
 
     if packages_remaining < old_k: # A package was just collected
         if cell_type == expected_package_type_for_order:
-            reward += 200 # Correct ordered package picked
+            reward += 1500 # BOLD INCREASE: Much higher reward for correct ordered package.
         elif cell_type in [FourRooms.RED, FourRooms.GREEN, FourRooms.BLUE]:
-            # Wrong ordered package picked (triggers early termination by environment)
-            reward -= 1000
-        else: # This is the 4th, unordered package
-            reward += 0 # Neutral reward for picking the extra package
+            reward -= 200 # Keep at -200. The termination is the main negative impact.
+        else: # This is the 4th, unordered package.
+            reward += 0 
 
-    if packages_remaining == 0 and is_terminal: # All packages collected (and ordered correctly)
-        reward += 1000
-    elif is_terminal and packages_remaining > 0: # Terminated early due to wrong ordered package
+    if packages_remaining == 0 and is_terminal:
+        reward += 3000 # BOLD INCREASE: Massive final reward for successful sequence completion.
+    elif is_terminal and packages_remaining > 0:
         pass 
 
     return reward
@@ -40,11 +42,11 @@ def main():
 
     fourRoomsObj = FourRooms('rgb', stochastic=args.stochastic)
 
-    num_epochs = 20000
+    num_epochs = 50000
     max_steps_per_epoch = 1500
 
     learning_rate = 0.1
-    discount_factor = 0.9
+    discount_factor = 0.95
 
     epsilon_start = 1.0
     epsilon_end = 0.01
@@ -108,7 +110,7 @@ def main():
             break
     
     fourRoomsObj.showPath(-1)
-    # fourRoomsObj.showPath(-1, savefig='scenario3_final_path.png')
+    fourRoomsObj.showPath(-1, savefig='scenario3_final_path.png')
 
 if __name__ == "__main__":
     main()
