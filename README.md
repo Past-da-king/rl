@@ -1,3 +1,30 @@
-Get started by customizing your environment (defined in the .idx/dev.nix file) with the tools and IDE extensions you'll need for your project!
+# CSC3022F - ML Assignment 2: Reinforcement Learning - Four Rooms
 
-Learn more at https://firebase.google.com/docs/studio/customize-workspace
+This project implements a Q-learning agent to solve package collection tasks in the Four-Rooms grid world environment across three scenarios of increasing complexity, with support for both deterministic and stochastic actions.
+
+## Files
+
+*   **`FourRooms.py`**: (Provided) Defines the Four-Rooms grid world environment, its dynamics, and package interactions.
+*   **`Q_agent.py`**: Contains the `QAgent` class, our core Q-learning algorithm implementation. This agent is used across all scenarios to learn optimal policies.
+*   **`scenario1.py`**:
+    *   **Task**: Agent collects 1 package.
+    *   Includes a comparison of two different exploration strategies and generates a plot (`scenario1_exploration_comparison.png`).
+*   **`scenario2.py`**:
+    *   **Task**: Agent collects 4 packages (order does not matter).
+*   **`scenario3.py`**:
+    *   **Task**: Agent collects 3 specific packages (Red, Green, Blue) in a predefined order, following the environment's 4-package sequence (P4 -> R -> B -> G).
+*   **`requirements.txt`**: Lists necessary Python packages (`numpy`, `matplotlib`).
+*   **`[scenarioX_..._path.png]` files**: Visualizations of agent paths, saved automatically upon script completion.
+*   **`[S1_Exploration_Comparison.pdf]`**: (To be created by student) A brief report with a plot analyzing exploration strategies for Scenario 1.
+
+## Running the Scenarios
+
+Each scenario can be run from the command line:
+
+```bash
+python scenario1.py [--stochastic]
+python scenario2.py [--stochastic]
+python scenario3.py [--stochastic]
+```
+
+
