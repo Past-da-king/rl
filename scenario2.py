@@ -1,7 +1,7 @@
 import argparse
 import sys 
 from FourRooms import FourRooms
-from q_agent import QAgent # Corrected import from 'Q_agent' to 'q_agent' if your filename is 'q_agent.py'
+from Q_agent import QAgent 
 
 def calculate_reward_s2(cell_type: int, new_pos: tuple, packages_remaining: int, is_terminal: bool, old_k: int) -> float:
     
@@ -94,7 +94,7 @@ def main():
             print(f"Agent successfully collected all packages in {step+1} steps.")
             break
     fourRoomsObj.showPath(-1) 
-    # fourRoomsObj.showPath(-1, savefig='scenario2_final_path.png') # Saves after window closed
+    fourRoomsObj.showPath(-1, savefig='scenario2_final_path.png') # Saves after window closed
 
 if __name__ == "__main__":
     main()
